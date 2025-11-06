@@ -1,7 +1,7 @@
 blueprint:
   name: "Ping Dead Z-Wave Devices"
   description: |
-    Pings all dead Z-Wave devices to try and wake them. (v1.0.5)
+    Pings all dead Z-Wave devices to try and wake them. (v1.0.6)
     
     This blueprint requires a specific template sensor. Please add
     the following code to your `configuration.yaml` file (or a `sensors.yaml` 
@@ -58,7 +58,7 @@ condition:
     entity_id: !input dead_zwave_sensor
     above: 0
 
-# --- VALIDATION FIX v1.0.5 ---
+# --- VALIDATION FIX v1.0.6 ---
 # The entire action block is moved into a 'choose' statement.
 # This satisfies the HA validator, as the templates are
 # only evaluated *after* the condition (that the sensor exists) is met.
@@ -66,7 +66,7 @@ action:
   - choose:
       # Check that the user has actually selected a sensor
       - conditions:
-        - "{{ input('dead_zwave_sensor') is not none }}"
+          - "{{ input('dead_zwave_sensor') is not none }}"
         sequence:
           # Call the button.press service
           - service: button.press
@@ -79,7 +79,9 @@ action:
             data:
               level: info
               logger: zwave_pinger_blueprint
-              message: "Attempted to ping dead Z-Wave devices: {{ state_attr(!input('dead_zwave_sensor'), 'entity_id') | default('No entities found') }}"
+              # --- TEMPLATE FIX v1.0.6 ---
+              # Changed !input() to input() for consistency.
+              message: "Attempted to ping dead Z-Wave devices: {{ state_attr(input('dead_zwave_sensor'), 'entity_id') | default('No entities found') }}"
     # Fallback in case no sensor is selected (this will do nothing, but is good practice)
     default: []
 
