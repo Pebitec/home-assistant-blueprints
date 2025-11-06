@@ -1,7 +1,7 @@
 blueprint:
-  name: "Ping Dead Z-Wave Devices (v1.0.2)"
+  name: "Ping Dead Z-Wave Devices"
   description: |
-    Pings all dead Z-Wave devices to try and wake them.
+    Pings all dead Z-Wave devices to try and wake them. (v1.0.2)
     
     This blueprint requires a specific template sensor. Please add
     the following code to your `sensor.yaml` file (or a similar
