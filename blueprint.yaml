@@ -7,3 +7,9 @@ blueprints:
     description: Control 3 HVAC zones based on temperature, energy price, and solar
     path: "climate/smart_hvac_temperature_energy_price_control.yaml"
     source: "https://github.com/Pebitec/home-assistant-blueprints"
+  
+  zwave_pinger:
+    name: Ping Dead Z-Wave Devices
+    description: Automatically pings dead Z-Wave nodes to wake them up.
+    path: "automation/zwave_ping_blueprint.yaml"
+    source: "https://github.com/Pebitec/home-assistant-blueprints"
