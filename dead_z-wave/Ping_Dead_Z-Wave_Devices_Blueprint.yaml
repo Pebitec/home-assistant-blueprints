@@ -14,12 +14,19 @@ blueprint:
           friendly_name: "Dead ZWave Devices"
           unique_id: dead_zwave_devices
           unit_of_measurement: "entities"
+          # --- UPDATED value_template ---
+          # This template now calculates the count directly to prevent race conditions.
           value_template: >
-            {% if state_attr('sensor.dead_zwave_devices', 'entity_id') != none %}
-              {{ state_attr('sensor.dead_zwave_devices', 'entity_id') | count }}
-            {% else %}
-              {{ 0 }}
-            {% endif %}
+            {% set exclude_filter = ['sensor.usb_controller_status'] %}
+            {{
+              expand(integration_entities('Z-Wave JS'))
+              | rejectattr("entity_id", "in", exclude_filter)
+              | selectattr("entity_id", "search", "node_status")
+              | selectattr('state', 'in', ['dead', 'unavailable', 'unknown'])
+              | list
+              | count
+            }}
+          # --- END of update ---
           attribute_templates:
             entity_id: >
               {% set exclude_filter = ['sensor.usb_controller_status'] %}
