@@ -3,9 +3,36 @@ blueprint:
   description: |
     Pings all dead Z-Wave devices to try and wake them.
     
-    This blueprint requires a specific template sensor that
-    counts dead devices and lists their 'button.ping' entities
-    in an attribute named 'entity_id'.
+    This blueprint requires a specific template sensor. Please add
+    the following code to your `sensor.yaml` file (or a similar
+    file included in your configuration.yaml) and restart Home Assistant.
+
+    ```yaml
+    - platform: template
+      sensors:
+        dead_zwave_devices:
+          friendly_name: "Dead ZWave Devices"
+          unique_id: dead_zwave_devices
+          unit_of_measurement: "entities"
+          value_template: >
+            {% if state_attr('sensor.dead_zwave_devices', 'entity_id') != none %}
+              {{ state_attr('sensor.dead_zwave_devices', 'entity_id') | count }}
+            {% else %}
+              {{ 0 }}
+            {% endif %}
+          attribute_templates:
+            entity_id: >
+              {% set exclude_filter = ['sensor.usb_controller_status'] %}
+              {{
+                expand(integration_entities('Z-Wave JS'))
+                | rejectattr("entity_id", "in", exclude_filter)
+                | selectattr("entity_id", "search", "node_status")
+                | selectattr('state', 'in', ['dead', 'unavailable', 'unknown'])
+                | map(attribute="object_id")
+                | map('regex_replace', find='(.*)_node_status', replace='button.\\1_ping', ignorecase=False)
+                | list
+              }}
+    ```
   domain: automation
   input:
     dead_zwave_sensor:
