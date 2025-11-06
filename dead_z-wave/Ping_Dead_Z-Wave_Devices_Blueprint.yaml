@@ -1,7 +1,7 @@
 blueprint:
   name: "Ping Dead Z-Wave Devices"
   description: |
-    Pings all dead Z-Wave devices to try and wake them. (v1.0.3)
+    Pings all dead Z-Wave devices to try and wake them. (v1.0.4)
     
     This blueprint requires a specific template sensor. Please add
     the following code to your `sensor.yaml` file (or a similar
@@ -64,29 +64,20 @@ action:
   # Call the button.press service
   - service: button.press
     target:
-      # --- VALIDATION FIX v1.0.3 ---
-      # This template is now more robust to handle the blueprint validator
-      # checking the template before an input is selected.
+      # --- VALIDATION FIX v1.0.4 ---
+      # A simpler template structure to satisfy the HA validator.
       entity_id: >
-        {% set sensor_id = !input('dead_zwave_sensor') %}
-        {% if sensor_id is defined and sensor_id != none and sensor_id != '' %}
-          {{ state_attr(sensor_id, 'entity_id') | default([]) }}
-        {% else %}
-          []
-        {% endif %}
+        {% set sensor = !input('dead_zwave_sensor') %}
+        {{ state_attr(sensor, 'entity_id') | default([]) if sensor else [] }}
   
   # Optional: Add a log entry to know when it has run.
   - service: system_log.write
     data:
       level: info
       logger: zwave_pinger_blueprint
-      # --- VALIDATION FIX v1.0.3 ---
+      # --- VALIDATION FIX v1.0.4 ---
       message: >
-        {% set sensor_id = !input('dead_zwave_sensor') %}
-        {% if sensor_id is defined and sensor_id != none and sensor_id != '' %}
-          Attempted to ping dead Z-Wave devices: {{ state_attr(sensor_id, 'entity_id') | default('No entities found') }}
-        {% else %}
-          Z-Wave Pinger ran but no sensor was configured.
-        {% endif %}
+        {% set sensor = !input('dead_zwave_sensor') %}
+        Attempted to ping dead Z-Wave devices: {{ state_attr(sensor, 'entity_id') | default('No entities found') if sensor else 'No sensor configured' }}
 
 mode: single
