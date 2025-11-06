@@ -66,13 +66,13 @@ action:
   - choose:
       # Check that the user has actually selected a sensor
       - conditions:
-          - "{{ !input('dead_zwave_sensor') != none }}"
+        - "{{ input('dead_zwave_sensor') is not none }}"
         sequence:
           # Call the button.press service
           - service: button.press
             target:
-              # This template is now safe, as it's inside the 'choose' block
-              entity_id: "{{ state_attr(!input('dead_zwave_sensor'), 'entity_id') | default([]) }}"
+              entity_id: >
+                {{ state_attr(input('dead_zwave_sensor'), 'entity_id') | default([]) }}
           
           # Optional: Add a log entry to know when it has run.
           - service: system_log.write
