@@ -1,5 +1,5 @@
 blueprint:
-  name: "Ping Dead Z-Wave Devices (v1.0.1)"
+  name: "Ping Dead Z-Wave Devices (v1.0.2)"
   description: |
     Pings all dead Z-Wave devices to try and wake them.
     
@@ -64,14 +64,16 @@ action:
   # Call the button.press service
   - service: button.press
     # The target entities are pulled from the sensor's 'entity_id' attribute.
+    # --- FIX: Added | default([]) to pass blueprint validation ---
     target:
-      entity_id: "{{ state_attr(!input('dead_zwave_sensor'), 'entity_id') }}"
+      entity_id: "{{ state_attr(!input('dead_zwave_sensor'), 'entity_id') | default([]) }}"
   
   # Optional: Add a log entry to know when it has run.
   - service: system_log.write
     data:
       level: info
       logger: zwave_pinger_blueprint
-      message: "Attempted to ping dead Z-Wave devices: {{ state_attr(!input('dead_zwave_sensor'), 'entity_id') }}"
+      # --- FIX: Added | default([]) to prevent logging errors during validation ---
+      message: "Attempted to ping dead Z-Wave devices: {{ state_attr(!input('dead_zwave_sensor'), 'entity_id') | default('Unknown') }}"
 
 mode: single
