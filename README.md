@@ -1,1 +1,51 @@
-Home Assistant BlueprintsSmart blueprints for Home Assistant automation.BlueprintsMulti-Zone Smart HVAC Control (v1.3.0)A comprehensive blueprint to control up to three independent HVAC zones based on a sophisticated set of rules for temperature, energy prices, and solar production.This blueprint is designed for maximum efficiency, allowing you to heat your home using the cheapest and greenest energy available.Core FeaturesMulti-Zone Control: Manages three zones independently.Zones 1 & 2: Standard, full-featured logic.Zone 3: A simpler, custom logic mode ideal for secondary areas (e.g., garages, basements) based on a separate solar surplus threshold.Advanced Energy Logic:Solar Surplus: Heats to a high target when solar production exceeds your home's base consumption.Grid Export: Heats to a high target when you are actively exporting power back to the grid.Low Price: Heats to a medium target when electricity prices are below your threshold.Poor Conditions: Maintains a low, base temperature when energy is expensive.Vacation Mode:Set all zones to a low "night" temperature.Includes a "Solar Boost" feature to heat the house to its high target if massive solar production is detected (e.g., > 5000 W), using free energy even while you're away.Night Mode: Set specific, lower temperatures for Zones 1 & 2 during the night.Smart Fan Control: Uses a "Normal" fan mode for regular heating and automatically engages a "Boost" fan mode when the temperature difference is large, heating the room faster.Debug Notification: Creates a persistent notification in Home Assistant showing the current state, targets, and decisions for each zone, making it easy to see why the automation is doing what it's doing.Required Sensors & EntitiesGlobal:Solar Production Sensor (W)Net Grid Consumption Sensor (W)Electricity Price Sensor (with current_price attribute)(Optional) Vacation Mode input_boolean helperFor Each Zone:Temperature SensorHVAC Climate Entity(Optional for Z1/Z2) Heat Pump Consumption Sensor (W)InstallationIn Home Assistant, go to Settings → Blueprints.Click Import Blueprint in the bottom-right corner.Paste the URL of this blueprint's file: https://github.com/Pebitec/home-assistant-blueprints/blob/main/climate/smart_hvac_temperature_energy_price_control.yamlConfigurationAfter importing, create a new automation from the blueprint and configure:All your sensors and climate entities for each zone.Temperature targets for "Good," "Poor," and "Night" conditions.Energy thresholds for solar, export, and price.(Optional) The input_boolean for Vacation Mode.Fan modes for "Normal" and "Boost."
+# Home Assistant Blueprints
+
+Smart blueprints for Home Assistant automation.
+
+## Blueprints
+
+### Multi-Zone Smart HVAC Control (v1.3.0)
+
+A comprehensive blueprint to control up to three independent HVAC zones based on a sophisticated set of rules for temperature, energy prices, and solar production.
+
+This blueprint is designed for maximum efficiency, allowing you to heat your home using the cheapest and greenest energy available.
+
+#### Core Features
+- **Multi-Zone Control**: Manages three zones independently.
+- **Zones 1 & 2**: Standard, full-featured logic.
+- **Zone 3**: A simpler, custom logic mode ideal for secondary areas (e.g., garages, basements) based on a separate solar surplus threshold.
+- **Advanced Energy Logic**:
+- **Solar Surplus**: Heats to a high target when solar production exceeds your home's base consumption.
+- **Grid Export**: Heats to a high target when you are actively exporting power back to the grid.
+- **Low Price**: Heats to a medium target when electricity prices are below your threshold.
+- **Poor Conditions**: Maintains a low, base temperature when energy is expensive.
+- **Vacation Mode**:
+- Set all zones to a low "night" temperature.
+- Includes a "Solar Boost" feature to heat the house to its *high* target if massive solar production is detected (e.g., > 5000 W), using free energy even while you're away.
+- **Night Mode**: Set specific, lower temperatures for Zones 1 & 2 during the night.
+- **Smart Fan Control**: Uses a "Normal" fan mode for regular heating and automatically engages a "Boost" fan mode when the temperature difference is large, heating the room faster.
+- **Debug Notification**: Creates a persistent notification in Home Assistant showing the current state, targets, and decisions for each zone, making it easy to see *why* the automation is doing what it's doing.
+
+#### Required Sensors & Entities
+- **Global:**
+- Solar Production Sensor (W)
+- Net Grid Consumption Sensor (W)
+- Electricity Price Sensor (with `current_price` attribute)
+- (Optional) Vacation Mode `input_boolean` helper
+- **For Each Zone:**
+- Temperature Sensor
+- HVAC Climate Entity
+- (Optional for Z1/Z2) Heat Pump Consumption Sensor (W)
+
+#### Installation
+1. In Home Assistant, go to **Settings** → **Blueprints**.
+2. Click **Import Blueprint** in the bottom-right corner.
+3. Paste the URL of this blueprint's file: `https://github.com/Pebitec/home-assistant-blueprints/blob/main/climate/smart_hvac_temperature_energy_price_control.yaml`
+
+#### Configuration
+After importing, create a new automation from the blueprint and configure:
+- All your sensors and climate entities for each zone.
+- Temperature targets for "Good," "Poor," and "Night" conditions.
+- Energy thresholds for solar, export, and price.
+- (Optional) The `input_boolean` for Vacation Mode.
+- Fan modes for "Normal" and "Boost."
