@@ -1,44 +1,42 @@
 blueprint:
   name: "Ping Dead Z-Wave Devices"
   description: |
-    Pings all dead Z-Wave devices to try and wake them. (v1.0.4)
+    Pings all dead Z-Wave devices to try and wake them. (v1.0.5)
     
     This blueprint requires a specific template sensor. Please add
-    the following code to your `sensor.yaml` file (or a similar
-    file included in your configuration.yaml) and restart Home Assistant.
+    the following code to your `configuration.yaml` file (or a `sensors.yaml` 
+    file included from it). Restart Home Assistant after adding.
 
     ```yaml
-    - platform: template
-      sensors:
-        dead_zwave_devices:
-          friendly_name: "Dead ZWave Devices"
-          unique_id: dead_zwave_devices
-          unit_of_measurement: "entities"
-          # --- UPDATED value_template ---
-          # This template now calculates the count directly to prevent race conditions.
-          value_template: >
-            {% set exclude_filter = ['sensor.usb_controller_status'] %}
-            {{
-              expand(integration_entities('Z-Wave JS'))
-              | rejectattr("entity_id", "in", exclude_filter)
-              | selectattr("entity_id", "search", "node_status")
-              | selectattr('state', 'in', ['dead', 'unavailable', 'unknown'])
-              | list
-              | count
-            }}
-          # --- END of update ---
-          attribute_templates:
-            entity_id: >
+    # Add this to your configuration.yaml
+    template:
+      - sensor:
+          - name: "Dead ZWave Devices"
+            unique_id: dead_zwave_devices
+            unit_of_measurement: "entities"
+            # This template now calculates the count directly to prevent race conditions.
+            state: >
               {% set exclude_filter = ['sensor.usb_controller_status'] %}
               {{
                 expand(integration_entities('Z-Wave JS'))
                 | rejectattr("entity_id", "in", exclude_filter)
                 | selectattr("entity_id", "search", "node_status")
                 | selectattr('state', 'in', ['dead', 'unavailable', 'unknown'])
-                | map(attribute="object_id")
-                | map('regex_replace', find='(.*)_node_status', replace='button.\\1_ping', ignorecase=False)
                 | list
+                | count
               }}
+            attributes:
+              entity_id: >
+                {% set exclude_filter = ['sensor.usb_controller_status'] %}
+                {{
+                  expand(integration_entities('Z-Wave JS'))
+                  | rejectattr("entity_id", "in", exclude_filter)
+                  | selectattr("entity_id", "search", "node_status")
+                  | selectattr('state', 'in', ['dead', 'unavailable', 'unknown'])
+                  | map(attribute="object_id")
+                  | map('regex_replace', find='(.*)_node_status', replace='button.\\1_ping', ignorecase=False)
+                  | list
+                }}
     ```
   domain: automation
   input:
@@ -60,24 +58,29 @@ condition:
     entity_id: !input dead_zwave_sensor
     above: 0
 
+# --- VALIDATION FIX v1.0.5 ---
+# The entire action block is moved into a 'choose' statement.
+# This satisfies the HA validator, as the templates are
+# only evaluated *after* the condition (that the sensor exists) is met.
 action:
-  # Call the button.press service
-  - service: button.press
-    target:
-      # --- VALIDATION FIX v1.0.4 ---
-      # A simpler template structure to satisfy the HA validator.
-      entity_id: >
-        {% set sensor = !input('dead_zwave_sensor') %}
-        {{ state_attr(sensor, 'entity_id') | default([]) if sensor else [] }}
-  
-  # Optional: Add a log entry to know when it has run.
-  - service: system_log.write
-    data:
-      level: info
-      logger: zwave_pinger_blueprint
-      # --- VALIDATION FIX v1.0.4 ---
-      message: >
-        {% set sensor = !input('dead_zwave_sensor') %}
-        Attempted to ping dead Z-Wave devices: {{ state_attr(sensor, 'entity_id') | default('No entities found') if sensor else 'No sensor configured' }}
+  - choose:
+      # Check that the user has actually selected a sensor
+      - conditions:
+          - "{{ !input('dead_zwave_sensor') != none }}"
+        sequence:
+          # Call the button.press service
+          - service: button.press
+            target:
+              # This template is now safe, as it's inside the 'choose' block
+              entity_id: "{{ state_attr(!input('dead_zwave_sensor'), 'entity_id') | default([]) }}"
+          
+          # Optional: Add a log entry to know when it has run.
+          - service: system_log.write
+            data:
+              level: info
+              logger: zwave_pinger_blueprint
+              message: "Attempted to ping dead Z-Wave devices: {{ state_attr(!input('dead_zwave_sensor'), 'entity_id') | default('No entities found') }}"
+    # Fallback in case no sensor is selected (this will do nothing, but is good practice)
+    default: []
 
 mode: single
