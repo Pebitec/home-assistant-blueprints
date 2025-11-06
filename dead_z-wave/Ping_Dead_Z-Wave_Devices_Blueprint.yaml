@@ -1,5 +1,5 @@
 blueprint:
-  name: "Ping Dead Z-Wave Devices"
+  name: "Ping Dead Z-Wave Devices (v1.0.1)"
   description: |
     Pings all dead Z-Wave devices to try and wake them.
     
