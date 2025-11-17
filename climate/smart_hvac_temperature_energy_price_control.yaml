@@ -1,6 +1,6 @@
 blueprint:
   name: "Multi-Zone HVAC Control"
-  description: "Control multiple HVAC zones based on temperature, electricity price, solar production, and heat pump consumption (v1.3.3 - Typo Fix)"
+  description: "Control multiple HVAC zones based on temperature, electricity price, solar production, and heat pump consumption (v1.3.4 - Trigger Fix)"
   domain: automation
   input:
     # Global Sensors
@@ -407,8 +407,6 @@ variables:
   input_zone1_target_high: !input zone1_target_temp_high
   input_zone1_target_low: !input zone1_target_temp_low
   input_zone1_night_temp: !input zone1_night_temperature
-  # --- TYPO FIX v1.3.3 ---
-  # Changed zone2_target_high -> zone2_target_temp_high
   input_zone2_target_high: !input zone2_target_temp_high
   input_zone2_target_low: !input zone2_target_temp_low
   input_zone2_night_temp: !input zone2_night_temperature
@@ -447,22 +445,19 @@ variables:
 # TRIGGERS
 # -----------------------------------------------------------
 trigger:
+  # This is the main trigger that runs the logic regularly.
   - platform: time_pattern
     minutes: "/5"
+  # Triggers for night mode start/end
   - platform: time
     at: !input night_mode_start
   - platform: time
     at: !input night_mode_end
-  # --- Add triggers for all relevant sensors ---
-  # We do NOT trigger on fallback sensors, as they are optional
-  # and this can cause validation errors. The 5-minute time_pattern
-  # will catch any changes.
-  - platform: state
-    entity_id: !input solar_production_sensor
-  - platform: state
-    entity_id: !input net_consumption_sensor
-  - platform: state
-    entity_id: !input price_sensor
+  
+  # --- UPDATED v1.3.4: Removed high-frequency triggers ---
+  # Only trigger on sensors that require an immediate reaction.
+  # Energy sensors (solar, net, price) will be checked by the time_pattern.
+  
   - platform: state
     entity_id: !input zone1_temperature_sensor
   - platform: state
@@ -686,7 +681,7 @@ action:
           - "{{ zone2_should_turn_off }}"
           - "{{ states(input_zone2_hvac_entity) != 'off' }}"
         sequence:
-          - service: climate.set_hvac_mode
+          - service: climate.set_hac_mode
             target: { entity_id: !input zone2_hvac_entity }
             data: { hvac_mode: 'off' }
       - conditions:
