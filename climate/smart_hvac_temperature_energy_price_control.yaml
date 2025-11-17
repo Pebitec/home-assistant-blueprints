@@ -1,6 +1,6 @@
 blueprint:
   name: "Multi-Zone HVAC Control"
-  description: "Control multiple HVAC zones based on temperature, electricity price, solar production, and heat pump consumption (v1.3.2 - Zone 3 Min Temp Logic)"
+  description: "Control multiple HVAC zones based on temperature, electricity price, solar production, and heat pump consumption (v1.3.3 - Typo Fix)"
   domain: automation
   input:
     # Global Sensors
@@ -407,7 +407,9 @@ variables:
   input_zone1_target_high: !input zone1_target_temp_high
   input_zone1_target_low: !input zone1_target_temp_low
   input_zone1_night_temp: !input zone1_night_temperature
-  input_zone2_target_high: !input zone2_target_high
+  # --- TYPO FIX v1.3.3 ---
+  # Changed zone2_target_high -> zone2_target_temp_high
+  input_zone2_target_high: !input zone2_target_temp_high
   input_zone2_target_low: !input zone2_target_temp_low
   input_zone2_night_temp: !input zone2_night_temperature
   input_normal_fan_mode: !input normal_fan_mode
