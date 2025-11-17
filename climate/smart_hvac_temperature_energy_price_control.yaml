@@ -1,6 +1,6 @@
 blueprint:
   name: "Multi-Zone HVAC Control"
-  description: "Control multiple HVAC zones based on temperature, electricity price, solar production, and heat pump consumption (v1.3.4 - Trigger Fix)"
+  description: "Control multiple HVAC zones based on temperature, electricity price, solar production, and heat pump consumption (v1.3.5 - Typo Fix)"
   domain: automation
   input:
     # Global Sensors
@@ -658,7 +658,7 @@ action:
             target: { entity_id: !input zone1_hvac_entity }
             data: { fan_mode: "{{ zone1_selected_fan_mode }}" }
 
-  # Zone 2 Control (Unchanged)
+  # Zone 2 Control
   - choose:
       - conditions:
           - "{{ zone2_needs_heating }}"
@@ -681,7 +681,9 @@ action:
           - "{{ zone2_should_turn_off }}"
           - "{{ states(input_zone2_hvac_entity) != 'off' }}"
         sequence:
-          - service: climate.set_hac_mode
+          # --- TYPO FIX v1.3.5 ---
+          # Changed climate.set_hac_mode to climate.set_hvac_mode
+          - service: climate.set_hvac_mode
             target: { entity_id: !input zone2_hvac_entity }
             data: { hvac_mode: 'off' }
       - conditions:
