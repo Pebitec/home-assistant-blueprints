@@ -1,28 +1,23 @@
 blueprint:
   name: "Multi-Zone HVAC Control"
-  description: "Control multiple HVAC zones based on temperature, electricity price, solar production, and heat pump consumption (v1.3.1 - Fan Mode Compatibility Fix)"
+  description: "Control multiple HVAC zones based on temperature, electricity price, solar production, and heat pump consumption (v1.3.2 - Dual Fan Mode Logic)"
   domain: automation
   input:
     # Global Sensors
     solar_production_sensor:
       name: "Solar Production Sensor"
-      description: "Select a sensor for solar production (e.g., sensor.solar_power)."
       selector:
         entity:
           domain: sensor
           device_class: power
-
     net_consumption_sensor:
       name: "Net Consumption Sensor"
-      description: "Select a sensor for net grid consumption (e.g., sensor.grid_power). Used for Zone 1/2 logic AND Zone 3 solar logic."
       selector:
         entity:
           domain: sensor
           device_class: power
-          
     price_sensor:
       name: "Electricity Price Sensor"
-      description: "Select a price sensor with a 'current_price' attribute."
       selector:
         entity:
           domain: sensor
@@ -30,15 +25,12 @@ blueprint:
     # Vacation Mode
     vacation_mode_toggle:
       name: "Vacation Mode Toggle (Input Boolean)"
-      description: "Select an 'input_boolean' helper to enable/disable Vacation Mode. (Optional)"
       selector:
         entity:
           domain: input_boolean
       default: ""
-
     vacation_solar_threshold:
       name: "Vacation Mode - Solar Threshold (W)"
-      description: "In vacation mode, heat to 'Good' temp if solar production exceeds this."
       default: 5000
       selector:
         number:
@@ -54,19 +46,16 @@ blueprint:
         entity:
           domain: sensor
           device_class: temperature
-          
     zone1_hvac_entity:
       name: "Zone 1 - HVAC Entity"
       selector:
         entity:
           domain: climate
-          
     zone1_heatpump_consumption_sensor:
       name: "Zone 1 - Heat Pump Consumption Sensor"
       selector:
         entity:
           domain: sensor
-
     zone1_target_temp_high:
       name: "Zone 1 - Target Temperature at Good Conditions"
       default: 22
@@ -76,7 +65,6 @@ blueprint:
           max: 31
           step: 0.5
           unit_of_measurement: "°C"
-          
     zone1_target_temp_low:
       name: "Zone 1 - Target Temperature at Poor Conditions"
       default: 20
@@ -94,19 +82,16 @@ blueprint:
         entity:
           domain: sensor
           device_class: temperature
-          
     zone2_hvac_entity:
       name: "Zone 2 - HVAC Entity"
       selector:
         entity:
           domain: climate
-          
     zone2_heatpump_consumption_sensor:
       name: "Zone 2 - Heat Pump Consumption Sensor"
       selector:
         entity:
           domain: sensor
-
     zone2_target_temp_high:
       name: "Zone 2 - Target Temperature at Good Conditions"
       default: 22
@@ -116,7 +101,6 @@ blueprint:
           max: 31
           step: 0.5
           unit_of_measurement: "°C"
-          
     zone2_target_temp_low:
       name: "Zone 2 - Target Temperature at Poor Conditions"
       default: 20
@@ -133,14 +117,12 @@ blueprint:
       selector:
         entity:
           domain: climate
-
     zone3_temperature_sensor:
       name: "Zone 3 - Temperature Sensor (Custom Logic)"
       selector:
         entity:
           domain: sensor
           device_class: temperature
-
     zone3_base_temp:
       name: "Zone 3 - Base Temperature (Bare Minimum)"
       default: 18
@@ -150,7 +132,6 @@ blueprint:
           max: 25
           step: 0.5
           unit_of_measurement: "°C"
-
     zone3_solar_temp:
       name: "Zone 3 - Solar Temperature (Optional Temp)"
       default: 22
@@ -160,7 +141,6 @@ blueprint:
           max: 30
           step: 0.5
           unit_of_measurement: "°C"
-          
     zone3_surplus_threshold:
       name: "Zone 3 - Surplus Threshold (W) for Solar Mode"
       default: -1000
@@ -170,7 +150,6 @@ blueprint:
           max: 0
           step: 100
           unit_of_measurement: "W"
-          
     zone3_hysteresis:
       name: "Zone 3 - Hysteresis (Turn-on offset)"
       default: 2.0
@@ -187,13 +166,11 @@ blueprint:
       default: "00:00:00"
       selector:
         time: {}
-
     night_mode_end:
       name: "Night Mode End Time"
       default: "05:00:00"
       selector:
         time: {}
-
     zone1_night_temperature:
       name: "Zone 1 - Night Temperature"
       default: 18
@@ -203,7 +180,6 @@ blueprint:
           max: 25
           step: 0.5
           unit_of_measurement: "°C"
-
     zone2_night_temperature:
       name: "Zone 2 - Night Temperature"
       default: 18
@@ -224,7 +200,6 @@ blueprint:
           max: 1000
           step: 10
           unit_of_measurement: "W"
-
     temperature_boost:
       name: "Global - Heating Boost (°C) (Zones 1 & 2 only)"
       default: 1.0
@@ -234,7 +209,6 @@ blueprint:
           max: 3.0
           step: 0.5
           unit_of_measurement: "°C"
-
     hysteresis:
       name: "Global - Hysteresis (°C) (Zones 1 & 2 only)"
       default: 0.5
@@ -244,7 +218,6 @@ blueprint:
           max: 3.0
           step: 0.1
           unit_of_measurement: "°C"
-
     boost_temp_difference:
       name: "Global - Temperature Difference for Boost Fan Mode"
       default: 2.0
@@ -264,7 +237,6 @@ blueprint:
           min: 0
           max: 5000
           unit_of_measurement: "W"
-          
     export_threshold:
       name: "Global - Energy Export Threshold (W)"
       default: -500
@@ -273,7 +245,6 @@ blueprint:
           min: -5000
           max: 0
           unit_of_measurement: "W"
-          
     price_threshold:
       name: "Global - Electricity Price Threshold (öre/kWh)"
       default: 150 
@@ -282,7 +253,6 @@ blueprint:
           min: 0
           max: 500
           unit_of_measurement: "öre/kWh"
-
     heatpump_threshold:
       name: "Global - Heat Pump Consumption Threshold (W)"
       default: 800
@@ -292,9 +262,33 @@ blueprint:
           max: 3000
           unit_of_measurement: "W"
 
-    # Fan Settings - UPDATED with valid names for your HVAC
-    normal_fan_mode:
-      name: "Global - Normal Fan Mode"
+    # --- FAN SETTINGS GROUPED BY COMPATIBILITY ---
+    # Zones 1 & 2 (Numeric: 1, 2, 3, 4, 5)
+    zone12_normal_fan_mode:
+      name: "Zone 1 & 2 - Normal Fan Mode"
+      default: "auto"
+      selector:
+        select:
+          options:
+            - { label: "Auto", value: "auto" }
+            - { label: "1 - Very Low", value: "1" }
+            - { label: "2 - Low", value: "2" }
+            - { label: "3 - Medium", value: "3" }
+            - { label: "4 - High", value: "4" }
+            - { label: "5 - Very High", value: "5" }
+    zone12_boost_fan_mode:
+      name: "Zone 1 & 2 - Boost Fan Mode"
+      default: "4"
+      selector:
+        select:
+          options:
+            - { label: "3 - Medium", value: "3" }
+            - { label: "4 - High", value: "4" }
+            - { label: "5 - Very High", value: "5" }
+
+    # Zone 3 (Named: low, middle, high, strong)
+    zone3_normal_fan_mode:
+      name: "Zone 3 - Normal Fan Mode"
       default: "auto"
       selector:
         select:
@@ -304,9 +298,8 @@ blueprint:
             - { label: "Middle", value: "middle" }
             - { label: "High", value: "high" }
             - { label: "Strong", value: "strong" }
-
-    boost_fan_mode:
-      name: "Global - Boost Fan Mode when Cold"
+    zone3_boost_fan_mode:
+      name: "Zone 3 - Boost Fan Mode"
       default: "high"
       selector:
         select:
@@ -349,8 +342,12 @@ variables:
   input_zone2_target_high: !input zone2_target_temp_high
   input_zone2_target_low: !input zone2_target_temp_low
   input_zone2_night_temp: !input zone2_night_temperature
-  input_normal_fan_mode: !input normal_fan_mode
-  input_boost_fan_mode: !input boost_fan_mode
+  
+  # Fan inputs
+  input_z12_normal_fan: !input zone12_normal_fan_mode
+  input_z12_boost_fan: !input zone12_boost_fan_mode
+  input_z3_normal_fan: !input zone3_normal_fan_mode
+  input_z3_boost_fan: !input zone3_boost_fan_mode
 
   solar_production: "{{ states(input_solar_sensor_id) | float(0) }}"
   net_consumption: "{{ states(input_net_consumption_id) | float(0) }}"
@@ -412,7 +409,7 @@ action:
         {% elif is_low_price %} OK (Low Price)
         {% else %} Poor {% endif %}
       
-      # Zone 1 Targets
+      # Zone 1 Targets & Fan
       zone1_is_low_consumption: "{{ zone1_heatpump_consumption <= heatpump_threshold_value }}"
       zone1_base_target: >
         {% if is_vacation_mode %}
@@ -432,10 +429,10 @@ action:
       zone1_needs_heating: "{{ zone1_current_temp < (zone1_limited_target - hysteresis_value) }}"
       zone1_temp_diff: "{{ zone1_limited_target - zone1_current_temp }}"
       zone1_needs_boost: "{{ zone1_temp_diff >= boost_temp_difference_value }}"
-      zone1_selected_fan_mode: "{{ input_boost_fan_mode if zone1_needs_boost else input_normal_fan_mode }}"
+      zone1_selected_fan_mode: "{{ input_z12_boost_fan if zone1_needs_boost else input_z12_normal_fan }}"
       zone1_current_mode: "{{ state_attr(input_zone1_hvac_entity, 'hvac_mode') }}"
       
-      # Zone 2 Targets
+      # Zone 2 Targets & Fan
       zone2_is_low_consumption: "{{ zone2_heatpump_consumption <= heatpump_threshold_value }}"
       zone2_base_target: >
         {% if is_vacation_mode %}
@@ -455,10 +452,10 @@ action:
       zone2_needs_heating: "{{ zone2_current_temp < (zone2_limited_target - hysteresis_value) }}"
       zone2_temp_diff: "{{ zone2_limited_target - zone2_current_temp }}"
       zone2_needs_boost: "{{ zone2_temp_diff >= boost_temp_difference_value }}"
-      zone2_selected_fan_mode: "{{ input_boost_fan_mode if zone2_needs_boost else input_normal_fan_mode }}"
+      zone2_selected_fan_mode: "{{ input_z12_boost_fan if zone2_needs_boost else input_z12_normal_fan }}"
       zone2_current_mode: "{{ state_attr(input_zone2_hvac_entity, 'hvac_mode') }}"
       
-      # Zone 3 Targets
+      # Zone 3 Targets & Fan
       zone3_current_temp: "{{ states(input_zone3_temp_id) | float(15.0) }}"
       zone3_has_solar: "{{ net_consumption < input_zone3_surplus_threshold | float }}"
       zone3_target_temp: >
@@ -472,7 +469,7 @@ action:
       zone3_should_turn_off: "{{ zone3_current_temp >= zone3_limited_target }}"
       zone3_temp_diff: "{{ zone3_limited_target - zone3_current_temp }}"
       zone3_needs_boost: "{{ zone3_temp_diff >= boost_temp_difference_value }}"
-      zone3_selected_fan_mode: "{{ input_boost_fan_mode if zone3_needs_boost else input_normal_fan_mode }}"
+      zone3_selected_fan_mode: "{{ input_z3_boost_fan if zone3_needs_boost else input_z3_normal_fan }}"
       zone3_current_mode: "{{ state_attr(input_zone3_hvac_entity, 'hvac_mode') }}"
 
   # Zone 1 Control
