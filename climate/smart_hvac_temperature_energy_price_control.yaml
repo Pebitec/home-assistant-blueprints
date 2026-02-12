@@ -412,10 +412,6 @@ trigger:
       - !input zone1_temperature_sensor
       - !input zone2_temperature_sensor
       - !input zone3_temperature_sensor
-      - !input vacation_mode_toggle
-      - !input zone1_enabled_toggle
-      - !input zone2_enabled_toggle
-      - !input zone3_enabled_toggle
 
 action:
   - variables:
