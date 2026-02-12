@@ -1,6 +1,6 @@
 blueprint:
   name: "Multi-Zone HVAC Control"
-  description: "Control multiple HVAC zones based on temperature, electricity price, solar production, and heat pump consumption (v1.3.2 - Dual Fan Mode Logic)"
+  description: "Control multiple HVAC zones based on temperature, electricity price, solar production, and heat pump consumption (v1.4.0 - Individual Zone Toggles)"
   domain: automation
   input:
     # Global Sensors
@@ -40,6 +40,13 @@ blueprint:
           unit_of_measurement: "W"
 
     # Zone 1 Configuration
+    zone1_enabled_toggle:
+      name: "Zone 1 - Enable Automation Toggle"
+      description: "Optional: Select an input_boolean to enable/disable automation for this zone. If none selected, it is always enabled."
+      selector:
+        entity:
+          domain: input_boolean
+      default: ""
     zone1_temperature_sensor:
       name: "Zone 1 - Temperature Sensor"
       selector:
@@ -76,6 +83,13 @@ blueprint:
           unit_of_measurement: "°C"
 
     # Zone 2 Configuration
+    zone2_enabled_toggle:
+      name: "Zone 2 - Enable Automation Toggle"
+      description: "Optional: Select an input_boolean to enable/disable automation for this zone. If none selected, it is always enabled."
+      selector:
+        entity:
+          domain: input_boolean
+      default: ""
     zone2_temperature_sensor:
       name: "Zone 2 - Temperature Sensor"
       selector:
@@ -112,6 +126,13 @@ blueprint:
           unit_of_measurement: "°C"
           
     # Zone 3 Configuration
+    zone3_enabled_toggle:
+      name: "Zone 3 - Enable Automation Toggle"
+      description: "Optional: Select an input_boolean to enable/disable automation for this zone. If none selected, it is always enabled."
+      selector:
+        entity:
+          domain: input_boolean
+      default: ""
     zone3_hvac_entity:
       name: "Zone 3 - HVAC Entity (Custom Logic)"
       selector:
@@ -262,8 +283,7 @@ blueprint:
           max: 3000
           unit_of_measurement: "W"
 
-    # --- FAN SETTINGS GROUPED BY COMPATIBILITY ---
-    # Zones 1 & 2 (Numeric: 1, 2, 3, 4, 5)
+    # Fan Settings
     zone12_normal_fan_mode:
       name: "Zone 1 & 2 - Normal Fan Mode"
       default: "auto"
@@ -285,8 +305,6 @@ blueprint:
             - { label: "3 - Medium", value: "3" }
             - { label: "4 - High", value: "4" }
             - { label: "5 - Very High", value: "5" }
-
-    # Zone 3 (Named: low, middle, high, strong)
     zone3_normal_fan_mode:
       name: "Zone 3 - Normal Fan Mode"
       default: "auto"
@@ -349,6 +367,11 @@ variables:
   input_z3_normal_fan: !input zone3_normal_fan_mode
   input_z3_boost_fan: !input zone3_boost_fan_mode
 
+  # Toggle inputs
+  input_zone1_toggle: !input zone1_enabled_toggle
+  input_zone2_toggle: !input zone2_enabled_toggle
+  input_zone3_toggle: !input zone3_enabled_toggle
+
   solar_production: "{{ states(input_solar_sensor_id) | float(0) }}"
   net_consumption: "{{ states(input_net_consumption_id) | float(0) }}"
   electricity_price: >
@@ -390,9 +413,17 @@ trigger:
       - !input zone2_temperature_sensor
       - !input zone3_temperature_sensor
       - !input vacation_mode_toggle
+      - !input zone1_enabled_toggle
+      - !input zone2_enabled_toggle
+      - !input zone3_enabled_toggle
 
 action:
   - variables:
+      # --- Enable Logic ---
+      zone1_enabled: "{{ states(input_zone1_toggle) != 'off' if input_zone1_toggle != '' else True }}"
+      zone2_enabled: "{{ states(input_zone2_toggle) != 'off' if input_zone2_toggle != '' else True }}"
+      zone3_enabled: "{{ states(input_zone3_toggle) != 'off' if input_zone3_toggle != '' else True }}"
+
       is_vacation_mode: "{{ states(input_vacation_toggle) == 'on' }}"
       vacation_solar_boost: "{{ solar_production > (input_vacation_solar_threshold | float(5000)) }}"
       zone1_current_temp: "{{ states(input_zone1_temp_id) | float(15.0) }}" 
@@ -475,6 +506,7 @@ action:
   # Zone 1 Control
   - choose:
       - conditions:
+          - "{{ zone1_enabled }}"
           - "{{ zone1_needs_heating }}"
           - "{{ states(input_zone1_hvac_entity) == 'off' or zone1_current_mode != 'heat' }}"
         sequence:
@@ -492,6 +524,7 @@ action:
             target: { entity_id: !input zone1_hvac_entity }
             data: { fan_mode: "{{ zone1_selected_fan_mode }}" }
       - conditions:
+          - "{{ zone1_enabled }}"
           - "{{ zone1_should_turn_off }}"
           - "{{ states(input_zone1_hvac_entity) != 'off' }}"
         sequence:
@@ -499,6 +532,7 @@ action:
             target: { entity_id: !input zone1_hvac_entity }
             data: { hvac_mode: 'off' }
       - conditions:
+          - "{{ zone1_enabled }}"
           - "{{ zone1_needs_heating }}"
           - "{{ zone1_current_mode == 'heat' }}"
         sequence:
@@ -512,6 +546,7 @@ action:
   # Zone 2 Control
   - choose:
       - conditions:
+          - "{{ zone2_enabled }}"
           - "{{ zone2_needs_heating }}"
           - "{{ states(input_zone2_hvac_entity) == 'off' or zone2_current_mode != 'heat' }}"
         sequence:
@@ -529,6 +564,7 @@ action:
             target: { entity_id: !input zone2_hvac_entity }
             data: { fan_mode: "{{ zone2_selected_fan_mode }}" }
       - conditions:
+          - "{{ zone2_enabled }}"
           - "{{ zone2_should_turn_off }}"
           - "{{ states(input_zone2_hvac_entity) != 'off' }}"
         sequence:
@@ -536,6 +572,7 @@ action:
             target: { entity_id: !input zone2_hvac_entity }
             data: { hvac_mode: 'off' }
       - conditions:
+          - "{{ zone2_enabled }}"
           - "{{ zone2_needs_heating }}"
           - "{{ zone2_current_mode == 'heat' }}"
         sequence:
@@ -549,6 +586,7 @@ action:
   # Zone 3 Control
   - choose:
       - conditions:
+          - "{{ zone3_enabled }}"
           - "{{ zone3_needs_heating }}"
           - "{{ states(input_zone3_hvac_entity) == 'off' or zone3_current_mode != 'heat' }}"
         sequence:
@@ -566,6 +604,7 @@ action:
             target: { entity_id: !input zone3_hvac_entity }
             data: { fan_mode: "{{ zone3_selected_fan_mode }}" }
       - conditions:
+          - "{{ zone3_enabled }}"
           - "{{ zone3_should_turn_off }}"
           - "{{ states(input_zone3_hvac_entity) != 'off' }}"
         sequence:
@@ -573,6 +612,7 @@ action:
             target: { entity_id: !input zone3_hvac_entity }
             data: { hvac_mode: 'off' }
       - conditions:
+          - "{{ zone3_enabled }}"
           - "{{ zone3_needs_heating }}"
           - "{{ zone3_current_mode == 'heat' }}"
         sequence:
@@ -595,8 +635,8 @@ action:
         **Energy**: {{ energy_condition }} (Surplus: {{ available_solar | round(0) }}W, Price: {{ electricity_price | round(2) }} öre)
         {% endif %}
         ---
-        **Z1 ({{ state_attr(input_zone1_hvac_entity, 'friendly_name') }})**: `{{ states(input_zone1_hvac_entity) }}` (T:{{ zone1_limited_target }} / C:{{ zone1_current_temp }}) -> **{% if zone1_needs_heating %} HEAT {% elif zone1_should_turn_off %} OFF {% else %} IDLE {% endif %}**
-        **Z2 ({{ state_attr(input_zone2_hvac_entity, 'friendly_name') }})**: `{{ states(input_zone2_hvac_entity) }}` (T:{{ zone2_limited_target }} / C:{{ zone2_current_temp }}) -> **{% if zone2_needs_heating %} HEAT {% elif zone2_should_turn_off %} OFF {% else %} IDLE {% endif %}**
-        **Z3 ({{ state_attr(input_zone3_hvac_entity, 'friendly_name') }})**: `{{ states(input_zone3_hvac_entity) }}` (T:{{ zone3_limited_target }} / C:{{ zone3_current_temp }}) -> **{% if zone3_needs_heating %} HEAT {% elif zone3_should_turn_off %} OFF {% else %} IDLE {% endif %}**
+        **Z1 ({{ state_attr(input_zone1_hvac_entity, 'friendly_name') }})**: {% if zone1_enabled %} `{{ states(input_zone1_hvac_entity) }}` (T:{{ zone1_limited_target }} / C:{{ zone1_current_temp }}) -> **{% if zone1_needs_heating %} HEAT {% elif zone1_should_turn_off %} OFF {% else %} IDLE {% endif %}** {% else %} *AUTOMATION DISABLED* {% endif %}
+        **Z2 ({{ state_attr(input_zone2_hvac_entity, 'friendly_name') }})**: {% if zone2_enabled %} `{{ states(input_zone2_hvac_entity) }}` (T:{{ zone2_limited_target }} / C:{{ zone2_current_temp }}) -> **{% if zone2_needs_heating %} HEAT {% elif zone2_should_turn_off %} OFF {% else %} IDLE {% endif %}** {% else %} *AUTOMATION DISABLED* {% endif %}
+        **Z3 ({{ state_attr(input_zone3_hvac_entity, 'friendly_name') }})**: {% if zone3_enabled %} `{{ states(input_zone3_hvac_entity) }}` (T:{{ zone3_limited_target }} / C:{{ zone3_current_temp }}) -> **{% if zone3_needs_heating %} HEAT {% elif zone3_should_turn_off %} OFF {% else %} IDLE {% endif %}** {% else %} *AUTOMATION DISABLED* {% endif %}
 
 mode: restart
