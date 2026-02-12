@@ -1,6 +1,6 @@
 blueprint:
   name: "Multi-Zone HVAC Control"
-  description: "Control multiple HVAC zones based on temperature, electricity price, solar production, and heat pump consumption (v1.4.0 - Individual Zone Toggles)"
+  description: "Control multiple HVAC zones based on temperature, electricity price, solar production, and heat pump consumption (v1.4.1 - Fixed Execution Frequency)"
   domain: automation
   input:
     # Global Sensors
@@ -404,14 +404,6 @@ trigger:
     at: !input night_mode_start
   - platform: time
     at: !input night_mode_end
-  - platform: state
-    entity_id: 
-      - !input solar_production_sensor
-      - !input net_consumption_sensor
-      - !input price_sensor
-      - !input zone1_temperature_sensor
-      - !input zone2_temperature_sensor
-      - !input zone3_temperature_sensor
 
 action:
   - variables:
