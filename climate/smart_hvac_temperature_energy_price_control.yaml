@@ -1,6 +1,6 @@
 blueprint:
   name: "Multi-Zone HVAC Control"
-  description: "Control multiple HVAC zones based on temperature, electricity price, solar production, and heat pump consumption (v1.4.1 - Fixed Execution Frequency)"
+  description: "Control multiple HVAC zones based on temperature, electricity price, solar production, and heat pump consumption (v1.5.0 - Individual Fan Controls)"
   domain: automation
   input:
     # Global Sensors
@@ -81,6 +81,29 @@ blueprint:
           max: 31
           step: 0.5
           unit_of_measurement: "°C"
+    zone1_normal_fan_mode:
+      name: "Zone 1 - Normal Fan Mode"
+      default: "auto"
+      selector:
+        select:
+          custom_value: true
+          options:
+            - { label: "Auto", value: "auto" }
+            - { label: "1 - Very Low", value: "1" }
+            - { label: "2 - Low", value: "2" }
+            - { label: "3 - Medium", value: "3" }
+            - { label: "4 - High", value: "4" }
+            - { label: "5 - Very High", value: "5" }
+    zone1_boost_fan_mode:
+      name: "Zone 1 - Boost Fan Mode"
+      default: "4"
+      selector:
+        select:
+          custom_value: true
+          options:
+            - { label: "3 - Medium", value: "3" }
+            - { label: "4 - High", value: "4" }
+            - { label: "5 - Very High", value: "5" }
 
     # Zone 2 Configuration
     zone2_enabled_toggle:
@@ -124,6 +147,29 @@ blueprint:
           max: 31
           step: 0.5
           unit_of_measurement: "°C"
+    zone2_normal_fan_mode:
+      name: "Zone 2 - Normal Fan Mode"
+      default: "auto"
+      selector:
+        select:
+          custom_value: true
+          options:
+            - { label: "Auto", value: "auto" }
+            - { label: "1 - Very Low", value: "1" }
+            - { label: "2 - Low", value: "2" }
+            - { label: "3 - Medium", value: "3" }
+            - { label: "4 - High", value: "4" }
+            - { label: "5 - Very High", value: "5" }
+    zone2_boost_fan_mode:
+      name: "Zone 2 - Boost Fan Mode"
+      default: "4"
+      selector:
+        select:
+          custom_value: true
+          options:
+            - { label: "3 - Medium", value: "3" }
+            - { label: "4 - High", value: "4" }
+            - { label: "5 - Very High", value: "5" }
           
     # Zone 3 Configuration
     zone3_enabled_toggle:
@@ -180,6 +226,28 @@ blueprint:
           max: 5
           step: 0.1
           unit_of_measurement: "°C"
+    zone3_normal_fan_mode:
+      name: "Zone 3 - Normal Fan Mode"
+      default: "auto"
+      selector:
+        select:
+          custom_value: true
+          options:
+            - { label: "Auto", value: "auto" }
+            - { label: "Low", value: "low" }
+            - { label: "Middle", value: "middle" }
+            - { label: "High", value: "high" }
+            - { label: "Strong", value: "strong" }
+    zone3_boost_fan_mode:
+      name: "Zone 3 - Boost Fan Mode"
+      default: "high"
+      selector:
+        select:
+          custom_value: true
+          options:
+            - { label: "Middle", value: "middle" }
+            - { label: "High", value: "high" }
+            - { label: "Strong", value: "strong" }
 
     # Night Mode Settings
     night_mode_start:
@@ -283,49 +351,6 @@ blueprint:
           max: 3000
           unit_of_measurement: "W"
 
-    # Fan Settings
-    zone12_normal_fan_mode:
-      name: "Zone 1 & 2 - Normal Fan Mode"
-      default: "auto"
-      selector:
-        select:
-          options:
-            - { label: "Auto", value: "auto" }
-            - { label: "1 - Very Low", value: "1" }
-            - { label: "2 - Low", value: "2" }
-            - { label: "3 - Medium", value: "3" }
-            - { label: "4 - High", value: "4" }
-            - { label: "5 - Very High", value: "5" }
-    zone12_boost_fan_mode:
-      name: "Zone 1 & 2 - Boost Fan Mode"
-      default: "4"
-      selector:
-        select:
-          options:
-            - { label: "3 - Medium", value: "3" }
-            - { label: "4 - High", value: "4" }
-            - { label: "5 - Very High", value: "5" }
-    zone3_normal_fan_mode:
-      name: "Zone 3 - Normal Fan Mode"
-      default: "auto"
-      selector:
-        select:
-          options:
-            - { label: "Auto", value: "auto" }
-            - { label: "Low", value: "low" }
-            - { label: "Middle", value: "middle" }
-            - { label: "High", value: "high" }
-            - { label: "Strong", value: "strong" }
-    zone3_boost_fan_mode:
-      name: "Zone 3 - Boost Fan Mode"
-      default: "high"
-      selector:
-        select:
-          options:
-            - { label: "Middle", value: "middle" }
-            - { label: "High", value: "high" }
-            - { label: "Strong", value: "strong" }
-
 variables:
   input_solar_sensor_id: !input solar_production_sensor
   input_net_consumption_id: !input net_consumption_sensor
@@ -361,9 +386,11 @@ variables:
   input_zone2_target_low: !input zone2_target_temp_low
   input_zone2_night_temp: !input zone2_night_temperature
   
-  # Fan inputs
-  input_z12_normal_fan: !input zone12_normal_fan_mode
-  input_z12_boost_fan: !input zone12_boost_fan_mode
+  # Fan inputs mapped to each zone
+  input_z1_normal_fan: !input zone1_normal_fan_mode
+  input_z1_boost_fan: !input zone1_boost_fan_mode
+  input_z2_normal_fan: !input zone2_normal_fan_mode
+  input_z2_boost_fan: !input zone2_boost_fan_mode
   input_z3_normal_fan: !input zone3_normal_fan_mode
   input_z3_boost_fan: !input zone3_boost_fan_mode
 
@@ -448,7 +475,7 @@ action:
       zone1_needs_heating: "{{ zone1_current_temp < (zone1_limited_target - hysteresis_value) }}"
       zone1_temp_diff: "{{ zone1_limited_target - zone1_current_temp }}"
       zone1_needs_boost: "{{ zone1_temp_diff >= boost_temp_difference_value }}"
-      zone1_selected_fan_mode: "{{ input_z12_boost_fan if zone1_needs_boost else input_z12_normal_fan }}"
+      zone1_selected_fan_mode: "{{ input_z1_boost_fan if zone1_needs_boost else input_z1_normal_fan }}"
       zone1_current_mode: "{{ state_attr(input_zone1_hvac_entity, 'hvac_mode') }}"
       
       # Zone 2 Targets & Fan
@@ -471,7 +498,7 @@ action:
       zone2_needs_heating: "{{ zone2_current_temp < (zone2_limited_target - hysteresis_value) }}"
       zone2_temp_diff: "{{ zone2_limited_target - zone2_current_temp }}"
       zone2_needs_boost: "{{ zone2_temp_diff >= boost_temp_difference_value }}"
-      zone2_selected_fan_mode: "{{ input_z12_boost_fan if zone2_needs_boost else input_z12_normal_fan }}"
+      zone2_selected_fan_mode: "{{ input_z2_boost_fan if zone2_needs_boost else input_z2_normal_fan }}"
       zone2_current_mode: "{{ state_attr(input_zone2_hvac_entity, 'hvac_mode') }}"
       
       # Zone 3 Targets & Fan
