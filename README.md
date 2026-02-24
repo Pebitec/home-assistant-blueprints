@@ -1,101 +1,115 @@
-# Home Assistant Blueprints
+Multi-Zone HVAC Control Blueprint for Home Assistant
 
-Smart blueprints for Home Assistant automation.
+Version: 1.5.0
 
-## Blueprints
+This highly customizable Home Assistant blueprint intelligently manages up to three separate HVAC (climate) zones based on real-time room temperatures, electricity prices, solar production, and heat pump consumption. It is designed to maximize comfort while minimizing energy costs by automatically utilizing surplus solar energy and taking advantage of low grid prices.
 
-### Multi-Zone Smart HVAC Control (v1.3.0)
+✨ Features
 
-A comprehensive blueprint to control up to three independent HVAC zones based on a sophisticated set of rules for temperature, energy prices, and solar production.
+Intelligent Energy Optimization: Automatically calculates the optimal target temperature by evaluating:
 
-This blueprint is designed for maximum efficiency, allowing you to heat your home using the cheapest and greenest energy available.
+Solar Surplus: Heats the house when you are producing more solar power than you are consuming.
 
-#### Core Features
+Energy Exporting: Maximizes heating when you are actively sending excess energy back to the grid.
 
-* **Multi-Zone Control**: Manages three zones independently.
+Electricity Prices: Takes advantage of cheap electricity to pre-heat or maintain temperatures.
 
-* **Zones 1 & 2**: Standard, full-featured logic.
+Three Independent Zones:
 
-* **Zone 3**: A simpler, custom logic mode ideal for secondary areas (e.g., garages, basements) based on a separate solar surplus threshold.
+Zones 1 & 2: Share global thresholds but maintain separate target states, fan controls, and heat pump consumption tracking.
 
-* **Advanced Energy Logic**:
+Zone 3 (Custom Logic): Operates on a dedicated, highly simplified solar-surplus logic with its own temperature settings and independent hysteresis.
 
-* **Solar Surplus**: Heats to a high target when solar production exceeds your home's base consumption.
+Vacation Mode: Drops temperatures to a baseline level while you are away, but intelligently boosts heating if your solar production exceeds a massive threshold (e.g., 5000W), ensuring your home stays fresh and dry using free energy.
 
-* **Grid Export**: Heats to a high target when you are actively exporting power back to the grid.
+Individual Zone Toggles: Enable or disable the automation for each zone independently using an input_boolean helper without having to disable the entire automation.
 
-* **Low Price**: Heats to a medium target when electricity prices are below your threshold.
+Custom Fan Controls: Supports standard numeric fan modes (e.g., 1-5) and named fan modes (e.g., low, high, strong), with the ability to input custom strings if your specific HVAC integration requires it.
 
-* **Poor Conditions**: Maintains a low, base temperature when energy is expensive.
+Anti-Short-Cycling (Hysteresis): Built-in hysteresis prevents your heat pump from turning on and off constantly when hovering around the target temperature.
 
-* **Vacation Mode**:
+Night Mode: Automatically lowers the temperature during specified sleeping hours (applies to Zones 1 & 2).
 
-* Set all zones to a low "night" temperature.
+Live Debugging: Generates a live, updating persistent notification in your Home Assistant dashboard detailing the exact conditions, variables, and logic decisions being made every 5 minutes.
 
-* Includes a "Solar Boost" feature to heat the house to its *high* target if massive solar production is detected (e.g., > 5000 W), using free energy even while you're away.
+📋 Prerequisites & Required Entities
 
-* **Night Mode**: Set specific, lower temperatures for Zones 1 & 2 during the night.
+To get the most out of this blueprint, you will need the following entities in your Home Assistant instance:
 
-* **Smart Fan Control**: Uses a "Normal" fan mode for regular heating and automatically engages a "Boost" fan mode when the temperature difference is large, heating the room faster.
+Global Sensors
 
-* **Debug Notification**: Creates a persistent notification in Home Assistant showing the current state, targets, and decisions for each zone, making it easy to see *why* the automation is doing what it's doing.
+Solar Production Sensor (power): Measures total solar generation (e.g., sensor.solar_power).
 
-#### Required Sensors & Entities
+Net Consumption Sensor (power): Measures what is coming from / going to the grid. Positive = importing, Negative = exporting. (e.g., sensor.grid_power).
 
-* **Global:**
+Electricity Price Sensor: A sensor that includes a current_price attribute (like the standard Nordpool integration).
 
-* Solar Production Sensor (W)
+Zone-Specific Entities
 
-* Net Grid Consumption Sensor (W)
+For each active zone, you need:
 
-* Electricity Price Sensor (with `current_price` attribute)
+A Temperature Sensor for the room.
 
-* (Optional) Vacation Mode `input_boolean` helper
+A Climate Entity (your HVAC/Heat Pump).
 
-* **For Each Zone:**
+(For Zones 1 & 2) A Power Sensor measuring the heat pump's current consumption.
 
-* Temperature Sensor
+Helpers (Input Booleans)
 
-* HVAC Climate Entity
+You will need to create Toggle Helpers (input_boolean) via Settings > Devices & Services > Helpers:
 
-* (Optional for Z1/Z2) Heat Pump Consumption Sensor (W)
+Vacation Mode Toggle (Optional)
 
-#### Installation
+Zone 1 Enable Toggle (Optional)
 
-1. In Home Assistant, go to **Settings** → **Blueprints**.
+Zone 2 Enable Toggle (Optional)
 
-2. Click **Import Blueprint** in the bottom-right corner.
+Zone 3 Enable Toggle (Optional)
 
-3. Paste the URL of this blueprint's file: `https://github.com/Pebitec/home-assistant-blueprints/blob/main/climate/smart_hvac_temperature_energy_price_control.yaml`
+⚙️ How It Works (The Logic)
 
-### Ping Dead Z-Wave Devices (v1.0.6)
+The blueprint runs every 5 minutes (and exactly at Night Mode Start/End times) to evaluate your home's energy state.
 
-A utility blueprint that automatically pings dead, unavailable, or unknown Z-Wave JS devices to try and bring them back online.
+Energy Conditions
 
-#### Core Features
+The automation categorizes your energy situation into four tiers:
 
-* **Automatic Recovery**: Runs automatically when a device's status changes to 'dead'.
+Best (Exporting): Your net consumption is negative and below the Energy Export Threshold. (You have lots of free energy).
 
-* **Safe & Efficient**: Only runs when dead devices are detected (count > 0).
+Good (Solar Surplus): Your total solar production minus your Base Household Consumption is greater than the Solar Production Threshold.
 
-* **Self-Contained Setup**: The blueprint description includes the `template sensor` code required for it to work.
+OK (Low Price): Your electricity price is below the Electricity Price Threshold and your heat pump is not currently consuming excessive power.
 
-* **Logger**: Creates a system log entry when it runs, so you know which devices it tried to ping.
+Poor: None of the above conditions are met.
 
-#### Required Sensors & Entities
+Target Calculation (Zones 1 & 2)
 
-* **Template Sensor**: Requires the `sensor.dead_zwave_devices` template sensor. The code for this sensor is included in the blueprint's description for easy setup.
+Best / Good Conditions: Sets the HVAC to the Target Temperature at Good Conditions.
 
-#### Installation
+OK Conditions: Sets the HVAC to the midpoint between the Good and Poor temperatures.
 
-1. In Home Assistant, go to **Settings** → **Blueprints**.
+Poor Conditions: Sets the HVAC to the Target Temperature at Poor Conditions.
 
-2. Click **Import Blueprint** in the bottom-right corner.
+Night Mode / Vacation Mode: Overrides the above to set the HVAC to the designated Night/Base temperatures (unless a massive vacation solar surplus is detected).
 
-3. Paste the URL of this blueprint's file: `https://github.com/Pebitec/home-assistant-blueprints/blob/main/automation/zwave_ping_blueprint.yaml` (Note: You'll need to create this file in your repo)
+Custom Logic (Zone 3)
 
-#### Configuration
+Zone 3 uses a simplified approach ideal for less critical spaces (like a garage or basement). It looks strictly at your Net Consumption. If you are exporting more than the Zone 3 Surplus Threshold (e.g., -1000W), it sets the "Solar Temperature". Otherwise, it falls back to the "Base Temperature".
 
-1. **Create the Template Sensor**: Copy the `template:` code from the blueprint's description into your `configuration.yaml` or `sensors.yaml` file and restart Home Assistant.
+🚀 Installation & Setup
 
-2. **Create the Automation**: Create an automation from the blueprint and select your newly created `sensor.dead_zwave_devices`.
+Import this blueprint into your Home Assistant instance.
+
+Create a new Automation and select the Multi-Zone HVAC Control blueprint.
+
+Map all your required global sensors (Solar, Net Consumption, Price).
+
+Fill out the configuration for Zone 1. If you only have one zone, you can leave the entities for Zones 2 and 3 blank (or use dummy sensors if your setup complains).
+
+Ensure your Fan Modes perfectly match what your specific Climate integration expects. If the dropdown values do not work, type the exact string your integration uses (e.g., "turbo", "quiet") directly into the dropdown box.
+
+Save the automation.
+
+Troubleshooting
+
+Check your Home Assistant Notifications panel. The blueprint automatically generates a hvac_control_debug notification. This will show you exactly what energy tier the automation selected, the calculated target temperatures, and why it decided to turn the HVAC HEAT, OFF, or IDLE.
