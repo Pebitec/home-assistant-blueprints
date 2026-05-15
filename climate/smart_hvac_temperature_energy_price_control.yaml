@@ -1,6 +1,6 @@
 blueprint:
   name: "Multi-Zone HVAC Control"
-  description: "Control multiple HVAC zones based on temperature, electricity price, solar production, and heat pump consumption (v1.5.0 - Individual Fan Controls)"
+  description: "Control multiple HVAC zones based on temperature, electricity price, solar production, and heat pump consumption (v1.6.0 - HVAC Operating Modes & Cooling Logic)"
   domain: automation
   input:
     # Global Sensors
@@ -47,6 +47,19 @@ blueprint:
         entity:
           domain: input_boolean
       default: ""
+    zone1_hvac_mode:
+      name: "Zone 1 - HVAC Operating Mode"
+      description: "Select the mode. (Logic automatically adapts for 'Cool' mode)."
+      default: "heat"
+      selector:
+        select:
+          custom_value: true
+          options:
+            - { label: "Heat", value: "heat" }
+            - { label: "Cool", value: "cool" }
+            - { label: "Auto (Heat/Cool)", value: "heat_cool" }
+            - { label: "Dry", value: "dry" }
+            - { label: "Fan Only", value: "fan_only" }
     zone1_temperature_sensor:
       name: "Zone 1 - Temperature Sensor"
       selector:
@@ -81,29 +94,6 @@ blueprint:
           max: 31
           step: 0.5
           unit_of_measurement: "°C"
-    zone1_normal_fan_mode:
-      name: "Zone 1 - Normal Fan Mode"
-      default: "auto"
-      selector:
-        select:
-          custom_value: true
-          options:
-            - { label: "Auto", value: "auto" }
-            - { label: "1 - Very Low", value: "1" }
-            - { label: "2 - Low", value: "2" }
-            - { label: "3 - Medium", value: "3" }
-            - { label: "4 - High", value: "4" }
-            - { label: "5 - Very High", value: "5" }
-    zone1_boost_fan_mode:
-      name: "Zone 1 - Boost Fan Mode"
-      default: "4"
-      selector:
-        select:
-          custom_value: true
-          options:
-            - { label: "3 - Medium", value: "3" }
-            - { label: "4 - High", value: "4" }
-            - { label: "5 - Very High", value: "5" }
 
     # Zone 2 Configuration
     zone2_enabled_toggle:
@@ -113,6 +103,19 @@ blueprint:
         entity:
           domain: input_boolean
       default: ""
+    zone2_hvac_mode:
+      name: "Zone 2 - HVAC Operating Mode"
+      description: "Select the mode. (Logic automatically adapts for 'Cool' mode)."
+      default: "heat"
+      selector:
+        select:
+          custom_value: true
+          options:
+            - { label: "Heat", value: "heat" }
+            - { label: "Cool", value: "cool" }
+            - { label: "Auto (Heat/Cool)", value: "heat_cool" }
+            - { label: "Dry", value: "dry" }
+            - { label: "Fan Only", value: "fan_only" }
     zone2_temperature_sensor:
       name: "Zone 2 - Temperature Sensor"
       selector:
@@ -147,29 +150,6 @@ blueprint:
           max: 31
           step: 0.5
           unit_of_measurement: "°C"
-    zone2_normal_fan_mode:
-      name: "Zone 2 - Normal Fan Mode"
-      default: "auto"
-      selector:
-        select:
-          custom_value: true
-          options:
-            - { label: "Auto", value: "auto" }
-            - { label: "1 - Very Low", value: "1" }
-            - { label: "2 - Low", value: "2" }
-            - { label: "3 - Medium", value: "3" }
-            - { label: "4 - High", value: "4" }
-            - { label: "5 - Very High", value: "5" }
-    zone2_boost_fan_mode:
-      name: "Zone 2 - Boost Fan Mode"
-      default: "4"
-      selector:
-        select:
-          custom_value: true
-          options:
-            - { label: "3 - Medium", value: "3" }
-            - { label: "4 - High", value: "4" }
-            - { label: "5 - Very High", value: "5" }
           
     # Zone 3 Configuration
     zone3_enabled_toggle:
@@ -179,6 +159,19 @@ blueprint:
         entity:
           domain: input_boolean
       default: ""
+    zone3_hvac_mode:
+      name: "Zone 3 - HVAC Operating Mode"
+      description: "Select the mode. (Logic automatically adapts for 'Cool' mode)."
+      default: "heat"
+      selector:
+        select:
+          custom_value: true
+          options:
+            - { label: "Heat", value: "heat" }
+            - { label: "Cool", value: "cool" }
+            - { label: "Auto (Heat/Cool)", value: "heat_cool" }
+            - { label: "Dry", value: "dry" }
+            - { label: "Fan Only", value: "fan_only" }
     zone3_hvac_entity:
       name: "Zone 3 - HVAC Entity (Custom Logic)"
       selector:
@@ -197,7 +190,7 @@ blueprint:
         number:
           min: 16
           max: 25
-          step: 0.5
+          step: 1.0
           unit_of_measurement: "°C"
     zone3_solar_temp:
       name: "Zone 3 - Solar Temperature (Optional Temp)"
@@ -206,7 +199,7 @@ blueprint:
         number:
           min: 16
           max: 30
-          step: 0.5
+          step: 1.0
           unit_of_measurement: "°C"
     zone3_surplus_threshold:
       name: "Zone 3 - Surplus Threshold (W) for Solar Mode"
@@ -226,28 +219,6 @@ blueprint:
           max: 5
           step: 0.1
           unit_of_measurement: "°C"
-    zone3_normal_fan_mode:
-      name: "Zone 3 - Normal Fan Mode"
-      default: "auto"
-      selector:
-        select:
-          custom_value: true
-          options:
-            - { label: "Auto", value: "auto" }
-            - { label: "Low", value: "low" }
-            - { label: "Middle", value: "middle" }
-            - { label: "High", value: "high" }
-            - { label: "Strong", value: "strong" }
-    zone3_boost_fan_mode:
-      name: "Zone 3 - Boost Fan Mode"
-      default: "high"
-      selector:
-        select:
-          custom_value: true
-          options:
-            - { label: "Middle", value: "middle" }
-            - { label: "High", value: "high" }
-            - { label: "Strong", value: "strong" }
 
     # Night Mode Settings
     night_mode_start:
@@ -351,6 +322,76 @@ blueprint:
           max: 3000
           unit_of_measurement: "W"
 
+    # Fan Settings mapped to each zone
+    zone1_normal_fan_mode:
+      name: "Zone 1 - Normal Fan Mode"
+      default: "auto"
+      selector:
+        select:
+          custom_value: true
+          options:
+            - { label: "Auto", value: "auto" }
+            - { label: "1 - Very Low", value: "1" }
+            - { label: "2 - Low", value: "2" }
+            - { label: "3 - Medium", value: "3" }
+            - { label: "4 - High", value: "4" }
+            - { label: "5 - Very High", value: "5" }
+    zone1_boost_fan_mode:
+      name: "Zone 1 - Boost Fan Mode"
+      default: "4"
+      selector:
+        select:
+          custom_value: true
+          options:
+            - { label: "3 - Medium", value: "3" }
+            - { label: "4 - High", value: "4" }
+            - { label: "5 - Very High", value: "5" }
+    zone2_normal_fan_mode:
+      name: "Zone 2 - Normal Fan Mode"
+      default: "auto"
+      selector:
+        select:
+          custom_value: true
+          options:
+            - { label: "Auto", value: "auto" }
+            - { label: "1 - Very Low", value: "1" }
+            - { label: "2 - Low", value: "2" }
+            - { label: "3 - Medium", value: "3" }
+            - { label: "4 - High", value: "4" }
+            - { label: "5 - Very High", value: "5" }
+    zone2_boost_fan_mode:
+      name: "Zone 2 - Boost Fan Mode"
+      default: "4"
+      selector:
+        select:
+          custom_value: true
+          options:
+            - { label: "3 - Medium", value: "3" }
+            - { label: "4 - High", value: "4" }
+            - { label: "5 - Very High", value: "5" }
+    zone3_normal_fan_mode:
+      name: "Zone 3 - Normal Fan Mode"
+      default: "auto"
+      selector:
+        select:
+          custom_value: true
+          options:
+            - { label: "Auto", value: "auto" }
+            - { label: "Low", value: "low" }
+            - { label: "Middle", value: "middle" }
+            - { label: "High", value: "high" }
+            - { label: "Strong", value: "strong" }
+    zone3_boost_fan_mode:
+      name: "Zone 3 - Boost Fan Mode"
+      default: "high"
+      selector:
+        select:
+          custom_value: true
+          options:
+            - { label: "Middle", value: "middle" }
+            - { label: "High", value: "high" }
+            - { label: "Strong", value: "strong" }
+
 variables:
   input_solar_sensor_id: !input solar_production_sensor
   input_net_consumption_id: !input net_consumption_sensor
@@ -386,7 +427,7 @@ variables:
   input_zone2_target_low: !input zone2_target_temp_low
   input_zone2_night_temp: !input zone2_night_temperature
   
-  # Fan inputs mapped to each zone
+  # Fan inputs
   input_z1_normal_fan: !input zone1_normal_fan_mode
   input_z1_boost_fan: !input zone1_boost_fan_mode
   input_z2_normal_fan: !input zone2_normal_fan_mode
@@ -398,6 +439,11 @@ variables:
   input_zone1_toggle: !input zone1_enabled_toggle
   input_zone2_toggle: !input zone2_enabled_toggle
   input_zone3_toggle: !input zone3_enabled_toggle
+  
+  # Mode inputs
+  input_z1_mode: !input zone1_hvac_mode
+  input_z2_mode: !input zone2_hvac_mode
+  input_z3_mode: !input zone3_hvac_mode
 
   solar_production: "{{ states(input_solar_sensor_id) | float(0) }}"
   net_consumption: "{{ states(input_net_consumption_id) | float(0) }}"
@@ -441,10 +487,6 @@ action:
 
       is_vacation_mode: "{{ states(input_vacation_toggle) == 'on' }}"
       vacation_solar_boost: "{{ solar_production > (input_vacation_solar_threshold | float(5000)) }}"
-      zone1_current_temp: "{{ states(input_zone1_temp_id) | float(15.0) }}" 
-      zone1_heatpump_consumption: "{{ states(input_zone1_hp_consumption_id) | float(0) }}"
-      zone2_current_temp: "{{ states(input_zone2_temp_id) | float(15.0) }}" 
-      zone2_heatpump_consumption: "{{ states(input_zone2_hp_consumption_id) | float(0) }}"
       available_solar: "{{ solar_production - base_consumption_value }}"
       has_meaningful_surplus: "{{ available_solar > solar_threshold_value }}"
       has_export_excess: "{{ net_consumption < export_threshold_value }}"
@@ -456,7 +498,10 @@ action:
         {% else %} Poor {% endif %}
       
       # Zone 1 Targets & Fan
+      zone1_current_temp: "{{ states(input_zone1_temp_id) | float(15.0) }}" 
+      zone1_heatpump_consumption: "{{ states(input_zone1_hp_consumption_id) | float(0) }}"
       zone1_is_low_consumption: "{{ zone1_heatpump_consumption <= heatpump_threshold_value }}"
+      zone1_is_cooling: "{{ input_z1_mode == 'cool' }}"
       zone1_base_target: >
         {% if is_vacation_mode %}
           {{ input_zone1_target_high | float if vacation_solar_boost else input_zone1_night_temp | float }}
@@ -469,17 +514,20 @@ action:
           {% elif is_low_price and zone1_is_low_consumption %} {{ (high + low) / 2 }}
           {% else %} {{ low }} {% endif %}
         {% endif %}
-      zone1_final_target: "{{ [zone1_base_target + temperature_boost_value, input_zone1_target_high] | min }}"
+      zone1_final_target: "{{ [zone1_base_target - temperature_boost_value, input_zone1_target_high | float] | max if zone1_is_cooling else [zone1_base_target + temperature_boost_value, input_zone1_target_high | float] | min }}"
       zone1_limited_target: "{{ [10, [zone1_final_target, 31] | min] | max }}"
-      zone1_should_turn_off: "{{ zone1_current_temp >= zone1_limited_target }}"
-      zone1_needs_heating: "{{ zone1_current_temp < (zone1_limited_target - hysteresis_value) }}"
-      zone1_temp_diff: "{{ zone1_limited_target - zone1_current_temp }}"
+      zone1_should_turn_off: "{{ zone1_current_temp <= zone1_limited_target if zone1_is_cooling else zone1_current_temp >= zone1_limited_target }}"
+      zone1_needs_activation: "{{ zone1_current_temp > (zone1_limited_target + hysteresis_value) if zone1_is_cooling else zone1_current_temp < (zone1_limited_target - hysteresis_value) }}"
+      zone1_temp_diff: "{{ zone1_current_temp - zone1_limited_target if zone1_is_cooling else zone1_limited_target - zone1_current_temp }}"
       zone1_needs_boost: "{{ zone1_temp_diff >= boost_temp_difference_value }}"
       zone1_selected_fan_mode: "{{ input_z1_boost_fan if zone1_needs_boost else input_z1_normal_fan }}"
       zone1_current_mode: "{{ state_attr(input_zone1_hvac_entity, 'hvac_mode') }}"
       
       # Zone 2 Targets & Fan
+      zone2_current_temp: "{{ states(input_zone2_temp_id) | float(15.0) }}" 
+      zone2_heatpump_consumption: "{{ states(input_zone2_hp_consumption_id) | float(0) }}"
       zone2_is_low_consumption: "{{ zone2_heatpump_consumption <= heatpump_threshold_value }}"
+      zone2_is_cooling: "{{ input_z2_mode == 'cool' }}"
       zone2_base_target: >
         {% if is_vacation_mode %}
           {{ input_zone2_target_high | float if vacation_solar_boost else input_zone2_night_temp | float }}
@@ -492,11 +540,11 @@ action:
           {% elif is_low_price and zone2_is_low_consumption %} {{ (high + low) / 2 }}
           {% else %} {{ low }} {% endif %}
         {% endif %}
-      zone2_final_target: "{{ [zone2_base_target + temperature_boost_value, input_zone2_target_high] | min }}"
+      zone2_final_target: "{{ [zone2_base_target - temperature_boost_value, input_zone2_target_high | float] | max if zone2_is_cooling else [zone2_base_target + temperature_boost_value, input_zone2_target_high | float] | min }}"
       zone2_limited_target: "{{ [10, [zone2_final_target, 31] | min] | max }}"
-      zone2_should_turn_off: "{{ zone2_current_temp >= zone2_limited_target }}"
-      zone2_needs_heating: "{{ zone2_current_temp < (zone2_limited_target - hysteresis_value) }}"
-      zone2_temp_diff: "{{ zone2_limited_target - zone2_current_temp }}"
+      zone2_should_turn_off: "{{ zone2_current_temp <= zone2_limited_target if zone2_is_cooling else zone2_current_temp >= zone2_limited_target }}"
+      zone2_needs_activation: "{{ zone2_current_temp > (zone2_limited_target + hysteresis_value) if zone2_is_cooling else zone2_current_temp < (zone2_limited_target - hysteresis_value) }}"
+      zone2_temp_diff: "{{ zone2_current_temp - zone2_limited_target if zone2_is_cooling else zone2_limited_target - zone2_current_temp }}"
       zone2_needs_boost: "{{ zone2_temp_diff >= boost_temp_difference_value }}"
       zone2_selected_fan_mode: "{{ input_z2_boost_fan if zone2_needs_boost else input_z2_normal_fan }}"
       zone2_current_mode: "{{ state_attr(input_zone2_hvac_entity, 'hvac_mode') }}"
@@ -504,6 +552,7 @@ action:
       # Zone 3 Targets & Fan
       zone3_current_temp: "{{ states(input_zone3_temp_id) | float(15.0) }}"
       zone3_has_solar: "{{ net_consumption < input_zone3_surplus_threshold | float }}"
+      zone3_is_cooling: "{{ input_z3_mode == 'cool' }}"
       zone3_target_temp: >
         {% if is_vacation_mode %}
           {{ input_zone3_solar_temp | float if vacation_solar_boost else input_zone3_base_temp | float }}
@@ -511,9 +560,9 @@ action:
           {{ input_zone3_solar_temp | float if zone3_has_solar else input_zone3_base_temp | float }}
         {% endif %}
       zone3_limited_target: "{{ [16, [zone3_target_temp, 30] | min] | max }}"
-      zone3_needs_heating: "{{ zone3_current_temp < (zone3_limited_target - (input_zone3_hysteresis | float)) }}"
-      zone3_should_turn_off: "{{ zone3_current_temp >= zone3_limited_target }}"
-      zone3_temp_diff: "{{ zone3_limited_target - zone3_current_temp }}"
+      zone3_should_turn_off: "{{ zone3_current_temp <= zone3_limited_target if zone3_is_cooling else zone3_current_temp >= zone3_limited_target }}"
+      zone3_needs_activation: "{{ zone3_current_temp > (zone3_limited_target + input_zone3_hysteresis | float) if zone3_is_cooling else zone3_current_temp < (zone3_limited_target - input_zone3_hysteresis | float) }}"
+      zone3_temp_diff: "{{ zone3_current_temp - zone3_limited_target if zone3_is_cooling else zone3_limited_target - zone3_current_temp }}"
       zone3_needs_boost: "{{ zone3_temp_diff >= boost_temp_difference_value }}"
       zone3_selected_fan_mode: "{{ input_z3_boost_fan if zone3_needs_boost else input_z3_normal_fan }}"
       zone3_current_mode: "{{ state_attr(input_zone3_hvac_entity, 'hvac_mode') }}"
@@ -522,15 +571,15 @@ action:
   - choose:
       - conditions:
           - "{{ zone1_enabled }}"
-          - "{{ zone1_needs_heating }}"
-          - "{{ states(input_zone1_hvac_entity) == 'off' or zone1_current_mode != 'heat' }}"
+          - "{{ zone1_needs_activation }}"
+          - "{{ states(input_zone1_hvac_entity) == 'off' or zone1_current_mode != input_z1_mode }}"
         sequence:
           - service: climate.turn_on
             target: { entity_id: !input zone1_hvac_entity }
           - delay: "00:00:02"
           - service: climate.set_hvac_mode
             target: { entity_id: !input zone1_hvac_entity }
-            data: { hvac_mode: heat }
+            data: { hvac_mode: "{{ input_z1_mode }}" }
           - delay: "00:00:03"
           - service: climate.set_temperature
             target: { entity_id: !input zone1_hvac_entity }
@@ -548,8 +597,8 @@ action:
             data: { hvac_mode: 'off' }
       - conditions:
           - "{{ zone1_enabled }}"
-          - "{{ zone1_needs_heating }}"
-          - "{{ zone1_current_mode == 'heat' }}"
+          - "{{ zone1_needs_activation }}"
+          - "{{ zone1_current_mode == input_z1_mode }}"
         sequence:
           - service: climate.set_temperature
             target: { entity_id: !input zone1_hvac_entity }
@@ -562,15 +611,15 @@ action:
   - choose:
       - conditions:
           - "{{ zone2_enabled }}"
-          - "{{ zone2_needs_heating }}"
-          - "{{ states(input_zone2_hvac_entity) == 'off' or zone2_current_mode != 'heat' }}"
+          - "{{ zone2_needs_activation }}"
+          - "{{ states(input_zone2_hvac_entity) == 'off' or zone2_current_mode != input_z2_mode }}"
         sequence:
           - service: climate.turn_on
             target: { entity_id: !input zone2_hvac_entity }
           - delay: "00:00:02"
           - service: climate.set_hvac_mode
             target: { entity_id: !input zone2_hvac_entity }
-            data: { hvac_mode: heat }
+            data: { hvac_mode: "{{ input_z2_mode }}" }
           - delay: "00:00:03"
           - service: climate.set_temperature
             target: { entity_id: !input zone2_hvac_entity }
@@ -588,8 +637,8 @@ action:
             data: { hvac_mode: 'off' }
       - conditions:
           - "{{ zone2_enabled }}"
-          - "{{ zone2_needs_heating }}"
-          - "{{ zone2_current_mode == 'heat' }}"
+          - "{{ zone2_needs_activation }}"
+          - "{{ zone2_current_mode == input_z2_mode }}"
         sequence:
           - service: climate.set_temperature
             target: { entity_id: !input zone2_hvac_entity }
@@ -602,15 +651,15 @@ action:
   - choose:
       - conditions:
           - "{{ zone3_enabled }}"
-          - "{{ zone3_needs_heating }}"
-          - "{{ states(input_zone3_hvac_entity) == 'off' or zone3_current_mode != 'heat' }}"
+          - "{{ zone3_needs_activation }}"
+          - "{{ states(input_zone3_hvac_entity) == 'off' or zone3_current_mode != input_z3_mode }}"
         sequence:
           - service: climate.turn_on
             target: { entity_id: !input zone3_hvac_entity }
           - delay: "00:00:02"
           - service: climate.set_hvac_mode
             target: { entity_id: !input zone3_hvac_entity }
-            data: { hvac_mode: heat }
+            data: { hvac_mode: "{{ input_z3_mode }}" }
           - delay: "00:00:03"
           - service: climate.set_temperature
             target: { entity_id: !input zone3_hvac_entity }
@@ -628,8 +677,8 @@ action:
             data: { hvac_mode: 'off' }
       - conditions:
           - "{{ zone3_enabled }}"
-          - "{{ zone3_needs_heating }}"
-          - "{{ zone3_current_mode == 'heat' }}"
+          - "{{ zone3_needs_activation }}"
+          - "{{ zone3_current_mode == input_z3_mode }}"
         sequence:
           - service: climate.set_temperature
             target: { entity_id: !input zone3_hvac_entity }
@@ -637,6 +686,17 @@ action:
           - service: climate.set_fan_mode
             target: { entity_id: !input zone3_hvac_entity }
             data: { fan_mode: "{{ zone3_selected_fan_mode }}" }
+      # --- CONDITION 4: FIX SETPOINT (if in dead-band and setpoint is wrong) ---
+      - conditions:
+          - "{{ zone3_enabled }}"
+          - "{{ zone3_needs_activation == False }}"
+          - "{{ zone3_should_turn_off == False }}"
+          - "{{ zone3_current_mode == input_z3_mode }}"
+          - "{{ state_attr(input_zone3_hvac_entity, 'temperature') | float != zone3_limited_target }}"
+        sequence:
+          - service: climate.set_temperature
+            target: { entity_id: !input zone3_hvac_entity }
+            data: { temperature: "{{ zone3_limited_target | float }}" }
 
   # Debug Notification
   - service: persistent_notification.create
@@ -650,8 +710,8 @@ action:
         **Energy**: {{ energy_condition }} (Surplus: {{ available_solar | round(0) }}W, Price: {{ electricity_price | round(2) }} öre)
         {% endif %}
         ---
-        **Z1 ({{ state_attr(input_zone1_hvac_entity, 'friendly_name') }})**: {% if zone1_enabled %} `{{ states(input_zone1_hvac_entity) }}` (T:{{ zone1_limited_target }} / C:{{ zone1_current_temp }}) -> **{% if zone1_needs_heating %} HEAT {% elif zone1_should_turn_off %} OFF {% else %} IDLE {% endif %}** {% else %} *AUTOMATION DISABLED* {% endif %}
-        **Z2 ({{ state_attr(input_zone2_hvac_entity, 'friendly_name') }})**: {% if zone2_enabled %} `{{ states(input_zone2_hvac_entity) }}` (T:{{ zone2_limited_target }} / C:{{ zone2_current_temp }}) -> **{% if zone2_needs_heating %} HEAT {% elif zone2_should_turn_off %} OFF {% else %} IDLE {% endif %}** {% else %} *AUTOMATION DISABLED* {% endif %}
-        **Z3 ({{ state_attr(input_zone3_hvac_entity, 'friendly_name') }})**: {% if zone3_enabled %} `{{ states(input_zone3_hvac_entity) }}` (T:{{ zone3_limited_target }} / C:{{ zone3_current_temp }}) -> **{% if zone3_needs_heating %} HEAT {% elif zone3_should_turn_off %} OFF {% else %} IDLE {% endif %}** {% else %} *AUTOMATION DISABLED* {% endif %}
+        **Z1 ({{ state_attr(input_zone1_hvac_entity, 'friendly_name') }})**: {% if zone1_enabled %} `{{ states(input_zone1_hvac_entity) }}` (T:{{ zone1_limited_target }} / C:{{ zone1_current_temp }}) -> **{% if zone1_needs_activation %} {{ input_z1_mode | upper }} {% elif zone1_should_turn_off %} OFF {% else %} IDLE {% endif %}** {% else %} *AUTOMATION DISABLED* {% endif %}
+        **Z2 ({{ state_attr(input_zone2_hvac_entity, 'friendly_name') }})**: {% if zone2_enabled %} `{{ states(input_zone2_hvac_entity) }}` (T:{{ zone2_limited_target }} / C:{{ zone2_current_temp }}) -> **{% if zone2_needs_activation %} {{ input_z2_mode | upper }} {% elif zone2_should_turn_off %} OFF {% else %} IDLE {% endif %}** {% else %} *AUTOMATION DISABLED* {% endif %}
+        **Z3 ({{ state_attr(input_zone3_hvac_entity, 'friendly_name') }})**: {% if zone3_enabled %} `{{ states(input_zone3_hvac_entity) }}` (T:{{ zone3_limited_target }} / C:{{ zone3_current_temp }}) -> **{% if zone3_needs_activation %} {{ input_z3_mode | upper }} {% elif zone3_should_turn_off %} OFF {% else %} IDLE {% endif %}** {% else %} *AUTOMATION DISABLED* {% endif %}
 
 mode: restart
