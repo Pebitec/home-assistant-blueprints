@@ -1,6 +1,6 @@
 Multi-Zone HVAC Control Blueprint for Home Assistant
 
-Version: 1.5.0
+Version: 1.7.0
 
 This highly customizable Home Assistant blueprint intelligently manages up to three separate HVAC (climate) zones based on real-time room temperatures, electricity prices, solar production, and heat pump consumption. It is designed to maximize comfort while minimizing energy costs by automatically utilizing surplus solar energy and taking advantage of low grid prices.
 
@@ -95,6 +95,8 @@ Night Mode / Vacation Mode: Overrides the above to set the HVAC to the designate
 Custom Logic (Zone 3)
 
 Zone 3 uses a simplified approach ideal for less critical spaces (like a garage or basement). It looks strictly at your Net Consumption. If you are exporting more than the Zone 3 Surplus Threshold (e.g., -1000W), it sets the "Solar Temperature". Otherwise, it falls back to the "Base Temperature".
+
+Zone 3 temperatures can be set below what the heat pump itself accepts (down to 8 °C), e.g. 10 °C to keep a garage frost-free. Set "Heat Pump Minimum Setpoint" to the lowest value your unit accepts (default 16 °C). The heat pump then runs at that minimum setpoint until the room sensor reaches your desired temperature, and is then turned off. Example: target 10 °C, room 7 °C → the heat pump starts at 16 °C and turns off when the room reaches 10 °C.
 
 🚀 Installation & Setup
 
